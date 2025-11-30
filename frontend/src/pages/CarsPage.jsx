@@ -4,86 +4,125 @@ import { getCars } from "../api";
 export default function CarsPage() {
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const res = await getCars();
-        setCars(res.data);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
+    fetchCars();
   }, []);
 
-  if (loading) return <p style={{ textAlign: "center" }}>Loading cars...</p>;
+  async function fetchCars() {
+    setLoading(true);
+    try {
+      const res = await getCars();
+
+      // TEMP: delay only for testing loading UI → remove later
+      await new Promise(resolve => setTimeout(resolve, 1200));
+
+      setCars(res.data);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load cars");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
-    <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "20px" }}>
-      <h2 style={{ textAlign: "center" }}>Available Cars 🚗</h2>
+    <section style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px" }}>
+      <h2 style={{ textAlign: "center", marginBottom: "30px" }}>
+        Available Cars 🚗
+      </h2>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-          gap: "20px",
-          marginTop: "20px",
-        }}
-      >
-        {cars.map((car) => (
-          <div
-            key={car.id}
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: "12px",
-              padding: "16px",
-              background: "white",
-              boxShadow: "0 4px 10px rgba(0,0,0,0.05)",
-            }}
-          >
-            <img
-              src={car.image_url}
-              alt={car.name}
+      {loading && (
+        <p style={{ textAlign: "center", fontSize: "18px" }}>Loading cars…</p>
+      )}
+
+      {error && (
+        <p style={{ textAlign: "center", color: "red", fontSize: "18px" }}>
+          {error}
+        </p>
+      )}
+
+      {!loading && !error && (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gap: "24px",
+          }}
+        >
+          {cars.map((car) => (
+            <div
+              key={car.id}
               style={{
-                width: "100%",
-                height: "180px",
-                objectFit: "cover",
-                borderRadius: "10px",
-              }}
-            />
-            <h3 style={{ marginTop: "10px" }}>
-              {car.name} ({car.year})
-            </h3>
-            <p>
-              <strong>Location:</strong> {car.location}
-            </p>
-            <p>
-              <strong>Fuel:</strong> {car.fuel_type}
-            </p>
-            <p>
-              <strong>Seats:</strong> {car.seats}
-            </p>
-            <p>
-              <strong>Price/day:</strong> KES {car.price_per_day}
-            </p>
-            <button
-              style={{
-                marginTop: "10px",
-                width: "100%",
-                padding: "10px",
-                background: "#2563eb",
-                color: "white",
-                borderRadius: "8px",
-                border: "none",
-                cursor: "pointer",
+                border: "1px solid #eee",
+                borderRadius: "16px",
+                padding: "20px",
+                textAlign: "center",
+                backgroundColor: "white",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                transition: "0.2s",
               }}
             >
-              Book Now →
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
+              {/* IMAGE */}
+              <div
+                style={{
+                  width: "100%",
+                  height: "150px",
+                  borderRadius: "12px",
+                  marginBottom: "16px",
+                  overflow: "hidden",
+                  background: "#e5e7eb",
+                }}
+              >
+                {car.image_url ? (
+                  <img
+                    src={car.image_url}
+                    alt={`${car.brand} ${car.model}`}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      display: "block",
+                    }}
+                  />
+                ) : null}
+              </div>
+
+              <h3>
+                {car.brand} {car.model} ({car.year})
+              </h3>
+
+              <p><b>Location:</b> {car.location}</p>
+              <p><b>Fuel:</b> {car.fuel_type}</p>
+              <p><b>Seats:</b> {car.seats}</p>
+              <p><b>Transmission:</b> {car.transmission}</p>
+              <p><b>Price/day:</b> KES {car.price_per_day}</p>
+
+              <p>
+                <b>Status:</b>{" "}
+                <span style={{ color: car.status === "Available" ? "green" : "red" }}>
+                  {car.status}
+                </span>
+              </p>
+
+              <button
+                style={{
+                  background: "#1d4ed8",
+                  padding: "10px 25px",
+                  borderRadius: "8px",
+                  color: "white",
+                  border: "none",
+                  cursor: "pointer",
+                  marginTop: "10px",
+                }}
+              >
+                Book Now →
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
